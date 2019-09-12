@@ -42,7 +42,7 @@ class UserEvent(models.Model):
 
 class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-	image = models.ImageField(default='default.jpg')
+	image = models.ImageField(default='default-avatar_tcWonAu_iaqxAtf.png')
 
 	def __str__(self):
 		return '%s profile'% (self.user.username)

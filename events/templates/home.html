@@ -5,7 +5,7 @@
   <div class="masthead-content">
     <div class="container">
       <h1 class="masthead-heading mb-0">The all <span style="font-family: Lato"> UNTITLED. </span>events,</h1>
-      <h2 class="masthead-subheading mb-5">You could never want...</h2>
+      <h2 class="masthead-subheading mb-5">You have ever wished for...</h2>
       <form action="{% url 'events:event-list' %}" method="GET">
       <div class="input-group mb-3">
         <input type="text" class="form-control text-muted btn-lg" placeholder="Search for title, description, or organizer..." name="q" value="{{request.GET.q}}">
@@ -21,7 +21,7 @@
         {% else %}
         <a href="{% url 'events:event-list' %}" class="btn btn-primary btn-xl rounded-pill mt-5">Explore All Events</a>
         <br>
-        <a href="{% url 'events:organizers-list' %}" class="btn btn-secondary btn-xl rounded-pill mt-3">Event Organizers!</a>
+        <a href="{% url 'events:organizers-list' %}" class="btn btn-secondary btn-xl rounded-pill mt-3">Explore our users!</a>
         {% endif %}
     </div>
   </div>

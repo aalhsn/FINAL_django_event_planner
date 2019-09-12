@@ -11,10 +11,10 @@
       <h3 class=" event mb-0">Event Location:<span style="color: black "><b>{{event.location}}</span></b></h3>
       <h3 class="  event mb-0">Event Date/Time: <span style="color: black "><b>{{event.date}} <span style="color: white">|</span> {{event.time}}</span></b></h3>
       <div class=" img col-md-4 ">
-            <img src="{{event.image.url}}" class="image_style" alt="...">
+            <img src="{{event.image.url}}" class="image_style" style="margin-top:50%" alt="...">
           </div>
       {% if request.user == event.organizer%}
-          <h3><a href="{% url 'events:update-event' event.id %}" class="btn btn-warning btn-xl rounded-pill mt-5">Edit</a>
+          <h3><a href="{% url 'events:update-event' event.id %}" class="btn btn-warning btn-xl rounded-pill mt-5" >Edit</a>
           <a href="{% url 'events:delete-event' event.id %}" class="btn btn-outline-dark btn-xl rounded-pill mt-5">Delete Event</a></h3>
 
              <br>      

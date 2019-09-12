@@ -25,11 +25,12 @@
                           </form>
                        <br>
                        
-                          <button class="btn btn-secondary btn-xl rounded-pill mt-5" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample"> Organizer's Events</button>
+                          <button class="btn btn-secondary btn-xl rounded-pill mt-5" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample" > Organizer's Events</button>
                     
                      
-                   
+                          
                           <div class="collapse" id="collapseExample">
+                            <br>
                             {% for event in events %}
                           <div class="card card-body">
                             <p>{{event.title}}</p>
@@ -37,7 +38,7 @@
                             <p>{{event.time}} - {{event.date}}</p>
                             <br>
                             {% if event.seats_left == 0  %}
-                            <p class="btn btn-danger block btn disabled" >FULL</p>
+                            <p class="btn btn-danger disabled" >FULL</p>
                             {% else %}
                             <p><a href="{% url 'events:event-book' event.id %}" class="btn btn-secondary" style="background-color: yellow color: white">Book Now!</a></p>
                             {% endif %}

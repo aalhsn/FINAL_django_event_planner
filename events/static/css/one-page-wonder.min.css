@@ -39,7 +39,7 @@ header.masthead .masthead-content .masthead-heading{font-size:4rem}
 
 header.masthead .masthead-content .masthead-subheading{font-size:2rem}
 
-header.masthead .bg-circle{z-index:0;position:absolute;border-radius:100%;background:linear-gradient(0deg,#BA55D3 0,#D8BFD8 100%)} /*CIRCLES COLOR */
+header.masthead .bg-circle{z-index:0;position:absolute;border-radius:100%;background:linear-gradient(0deg,#BA55D3 0,#D8BFD8 50%)} /*CIRCLES COLOR */
 
 header.masthead .bg-circle-1{height:90rem;width:90rem;bottom:-55rem;left:-55rem}
 
@@ -128,4 +128,10 @@ header.masthead .masthead-content .masthead-subheading{font-size:4rem}}
 
 .pro  {
 	margin-top: -2% !important;
+}
+
+.disppicture{
+
+	width:20px;
+	height:30px;
 }

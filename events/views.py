@@ -72,10 +72,13 @@ def organizers_list(request):
 	orglist=[]
 	for p in profiles:
 		try:
-			Event.objects.get(organizer=p.user)
-			orglist.append(p)
+			Event.objects.filter(organizer=p.user)
+			
 		except Event.DoesNotExist:
 			pass
+		else:
+			orglist.append(p)
+			
 
 	context={
 
@@ -130,18 +133,59 @@ def event_list(request):
 
 
 def create_event(request):
-	if request.user.is_anonymous:
-		messages.warning(request, "You need to sign in first")
-		return redirect('events:signin')
-	form = EventForm()
-	if request.method == "POST":
-		form = EventForm(request.POST, request.FILES or None)
-		if form.is_valid():
-			event = form.save(commit=False)
-			event.organizer = request.user
-			event.save()
-			messages.success(request, "Successfully Created!")
-			return redirect('events:dashboard')
+	emaillist=[]
+	emails=[]
+	followers = User.objects.all()
+	for user in followers:
+		try:
+			Contact.objects.get(following=request.user, follower=user)
+			emaillist.append(user)
+		except Contact.DoesNotExist:
+			pass
+		else:
+
+			if request.user.is_anonymous:
+				messages.warning(request, "You need to sign in first")
+				return redirect('events:signin')
+			form = EventForm()
+			if request.method == "POST":
+				form = EventForm(request.POST, request.FILES or None)
+				if form.is_valid():
+					event = form.save(commit=False)
+					event.organizer = request.user
+					for email in emaillist:
+						emails.append(email.email)
+
+
+
+					event.save()
+					send_mail(
+						'[NO-REPLY]: UNTITLED. YOU ORGANIZER JUST ADDED NEW EVENT!',
+						"""
+
+					This is a automated email to inform you that 
+					a new event is currently available. 
+					if you are interested, 
+					please pass by our website and take a look at it!
+
+					Review the below information:
+						
+					Event Title: %s
+					Date: %s
+					Time: %s
+						
+
+
+					Best UNTITLED. regards,
+
+															© UNTITLED. Event Agency 2020
+						""" % (event.title, event.date, event.time),
+						'untitled.events.2020@gmail.com',
+						emails,
+						fail_silently=False,
+						)
+					messages.success(request, "Successfully Created!")
+					return redirect('events:dashboard')
 	context = {
 	"form": form,
 	}
@@ -238,7 +282,10 @@ def event_book(request, event_id):
 				send_mail(
 					'[NO-REPLY]: UNTITLED. Booking Confirmation',
 					"""
-					This is a automated email to confirm your booking, please do not reply.
+					Dear %s
+
+					This is a automated email to confirm your booking,
+					please do not reply.
 
 					Review the below information:
 					
@@ -251,7 +298,7 @@ def event_book(request, event_id):
 					Best UNTITLED. regards,
 
 					© UNTITLED. Event Agency 2020
-					""" % (event.title, event.date, event.time, user_event.seats),
+					""" % (user_event.name.last_name, event.title, event.date, event.time, user_event.seats),
 					'untitled.events.2020@gmail.com',
 					[request.user.email],
 					fail_silently=False,
