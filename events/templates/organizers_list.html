@@ -5,8 +5,8 @@
   <div class="masthead-content">
 
     <div class="container">
-      <header class=" masthead-heading text-center mb-5">Explore Users</header>
-      {% for organizer in organizers %}
+      <header class=" masthead-heading text-center mb-5">Explore Our Organizers</header>
+      {% for organizer, events in organizers.items %}
       <div class="card mb-3 bg-white text-black" style="max-width: 100%;">
         <div class="row no-gutters">
           <div class="  col-md-4 ">
@@ -15,11 +15,23 @@
           <div class="col-md-8 ">
             <div class="card-body text-center my-3">
               <h1 class="eventlist card-title listblock">{{organizer}}</h1>
-              <h4 class=" event_title card-text listblock">{{organizer.user.first_name}} {{organizer.user.last_name}}</h4>
+              <h4 class=" event_title  listblock">{{organizer.user.first_name}} {{organizer.user.last_name}}</h4>
               <br>
               <h4><a href="{% url 'events:profile' organizer.user.id %}" class="btn btn-info block btn-lg" >View Profile</a></h4>
-           
-              
+              <br>
+              <div class="text-center card-text">
+                <h1 class="listblock">Upcoming Events</h1>
+                {% for upcoming in events.upcoming %}
+                  <h4 class="event_title listblock">{{upcoming}}</h4>
+               
+                {% endfor %}
+                 <br>
+              <h1 class="listblock">Past Events</h1>
+              {% for past in events.past %}
+                  <h4 class=" event_title listblock">{{past}}</h4>
+                  <br>
+                {% endfor %}
+            </div>
             </div>
           </div>
         </div>

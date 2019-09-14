@@ -24,7 +24,9 @@
             <th scope="row">{{event.title}}</th>
             <td>{{event.date}}</td>
             <td>{{event.seats_left}}</td>
-            <td><a href="{% url 'events:event-detail' event.id %}" class="btn btn-secondary" style="background-color: yellow color: white">View</a></td>
+            <td> 
+              <a href="{% url 'events:event-detail' event.id %}" class="btn btn-secondary" style="background-color: yellow color: white">View</a>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -38,7 +40,7 @@
       <tr>
         <th scope="col">Title</th>
         <th scope="col">Date</th>
-        <th scope="col">Status</th>
+        <th scope="col">Status/Action</th>
       </tr>
     </thead>
     <tbody>
@@ -46,7 +48,7 @@
         <tr>
         <th scope="row">{{event.event.title}}</th>
         <td>{{event.event.date}}</td>
-          <td style="color: green">Booked!</td>
+          <td style="color: green">Booked! / <a href="{% url 'events:delete-book' event.id %}" class="btn btn-danger" style="background-color: yellow color: white">Cancel</a></td>
       </tr>
       {% endfor %}
       {% for event in past %}

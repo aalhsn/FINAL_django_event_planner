@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
-from .forms import UserSignup, UserLogin, EventForm, UserForm, ProfileUpdate, ProfileUser
+from .forms import UserSignup, UserLogin, EventForm, BookingForm, ProfileUpdate, ProfileUser
 from django.contrib import messages
-from .models import Event, UserEvent, Profile, Contact
-from datetime import date
+from .models import Event, Booking, Profile, Contact
+from datetime import date, datetime, timedelta
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -69,20 +69,35 @@ def organizers_list(request):
 		messages.warning(request, "You need to sign in first")
 		return redirect('events:signin')
 	profiles = Profile.objects.all()
-	orglist=[]
-	for p in profiles:
-		try:
-			Event.objects.filter(organizer=p.user)
+	events= Event.objects.all()
+	upcoming = events.filter(date__gt=date.today())
+	past = events.filter(date__lt=date.today())	
+	userevent={}
+	for profile in profiles:
+		if len(events.filter(organizer=profile.user)) > 0:
+			try:
+				obj=past.filter(organizer=profile.user)
+				
+				userevent[profiles.get(user=profile.user)]={
+				'upcoming':upcoming.filter(organizer=profile.user),
+				'past':obj,
 			
-		except Event.DoesNotExist:
-			pass
-		else:
-			orglist.append(p)
-			
+				}
 
+			except Event.DoesNotExist:
+				userevent[profiles.get(user=profile.user)]={
+				'upcoming':upcoming.filter(organizer=profile.user),
+				'past':"None",
+			
+				}
+
+
+
+			
 	context={
 
-		'organizers':orglist,
+		'organizers':userevent,
+
 
 	}
 	return render(request, 'organizers_list.html', context)
@@ -90,7 +105,7 @@ def organizers_list(request):
 def home(request):
 	return render(request, 'home.html')
 
-def UpdateProfile(request, user_id):		# update_profile, ~profile_id~
+def profile_update(request, user_id):		# update_profile, ~profile_id~
 	# redundant
 	
 	if request.user.is_anonymous :
@@ -133,59 +148,49 @@ def event_list(request):
 
 
 def create_event(request):
-	emaillist=[]
 	emails=[]
-	followers = User.objects.all()
-	for user in followers:
-		try:
-			Contact.objects.get(following=request.user, follower=user)
-			emaillist.append(user)
-		except Contact.DoesNotExist:
-			pass
-		else:
+	followers = Contact.objects.filter(following=request.user)
 
-			if request.user.is_anonymous:
-				messages.warning(request, "You need to sign in first")
-				return redirect('events:signin')
-			form = EventForm()
-			if request.method == "POST":
-				form = EventForm(request.POST, request.FILES or None)
-				if form.is_valid():
-					event = form.save(commit=False)
-					event.organizer = request.user
-					for email in emaillist:
-						emails.append(email.email)
+	if request.user.is_anonymous:
+		messages.warning(request, "You need to sign in first")
+		return redirect('events:signin')
+	form = EventForm()
+	if request.method == "POST":
+		form = EventForm(request.POST, request.FILES or None)
+		if form.is_valid():
+			event = form.save(commit=False)
+			event.organizer = request.user
+			event.save()
+			for follower in followers:
+				emails.append(follower.follower.email)
+			print(followers)
+			print(emails)
+			send_mail(
+				'[UNTITLED. Events]: %s Just Created a New Event!' % (event.organizer),
+				"""
+			This is a automated email to inform you that 
+			a new event is currently available. 
+			if you are interested, 
+			please pass by our website and take a look at it!
 
-
-
-					event.save()
-					send_mail(
-						'[NO-REPLY]: UNTITLED. YOU ORGANIZER JUST ADDED NEW EVENT!',
-						"""
-
-					This is a automated email to inform you that 
-					a new event is currently available. 
-					if you are interested, 
-					please pass by our website and take a look at it!
-
-					Review the below information:
-						
-					Event Title: %s
-					Date: %s
-					Time: %s
-						
+			Review the below information:
+				
+			Event Title: %s
+			Date: %s
+			Time: %s
+				
 
 
-					Best UNTITLED. regards,
+			Best UNTITLED. regards,
 
-															© UNTITLED. Event Agency 2020
-						""" % (event.title, event.date, event.time),
-						'untitled.events.2020@gmail.com',
-						emails,
-						fail_silently=False,
-						)
-					messages.success(request, "Successfully Created!")
-					return redirect('events:dashboard')
+													© UNTITLED. Event Agency 2020
+				""" % (event.title, event.date, event.time),
+				'untitled.events.2020@gmail.com',
+				emails,
+				fail_silently=False,
+				)
+			messages.success(request, "Successfully Created!")
+			return redirect('events:dashboard')
 	context = {
 	"form": form,
 	}
@@ -238,11 +243,31 @@ def event_update(request, event_id):
 
 def event_delete(request, event_id):
 	event=Event.objects.get(id=event_id)
+
 	if (request.user.is_anonymous) or (request.user != event.organizer):
-		messages.warning(request, "You need to sign in first")		# add new message
+		messages.warning(request, "You need to sign in first")
 		return redirect('events:home')
+	now_time = datetime.now()
+	check = event.get_datetime() - now_time
+	if check <= timedelta(hours=3):
+		messages.success(request, "Can't delete before 3 hours")
+		return redirect ('events:event-detail', event_id)
 	event.delete()
 	messages.success(request, "Successfully Deleted!")
+	return redirect('events:dashboard')
+
+def delete_book(request, booking_id):
+	if request.user.is_anonymous:
+		messages.warning(request, "You need to sign in first")
+		return redirect('events:home')
+	booking=Booking.objects.get(id=booking_id)
+	now_time = datetime.now()
+	check = booking.booking_time() - now_time
+	if check <= timedelta(hours=3):
+		messages.success(request, "Can't cancel booking before 3 hours")
+		return redirect ('events:dashboard')
+	booking.delete()
+	messages.success(request, "Booking is canceled")
 	return redirect('events:dashboard')
 
 
@@ -267,12 +292,20 @@ class Signup(View):
 		return redirect("events:signup")
 
 def event_book(request, event_id):
-	form = UserForm()
-	event = Event.objects.get(id=event_id)
 	if request.user.is_anonymous:
+		messages.success(request, "You need to sign in first!")
 		return redirect('events:signin')
+	event = Event.objects.get(id=event_id)
+	now_time = datetime.now()
+	check = event.get_datetime() - now_time
+	if check <= timedelta(hours=3):
+		messages.success(request, "Can't book before 3 hours")
+		return redirect ('events:event-list')
+
+
+	form = BookingForm()
 	if request.method == "POST":
-		form = UserForm(request.POST)
+		form = BookingForm(request.POST)
 		if form.is_valid():
 			user_event = form.save(commit=False)
 			user_event.event = event
@@ -280,7 +313,7 @@ def event_book(request, event_id):
 			if user_event.seats <= event.seats_left():
 				user_event.save()
 				send_mail(
-					'[NO-REPLY]: UNTITLED. Booking Confirmation',
+					'[UNTITLED. Events]: Booking Confirmation for %s' % (user_event.name),
 					"""
 					Dear %s
 

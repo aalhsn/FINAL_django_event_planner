@@ -5,16 +5,21 @@ from PIL import Image
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
+from datetime import date
+from datetime import datetime
 
 class Event(models.Model):
 	title=models.CharField(max_length=100)
-	image=models.ImageField(null=True, blank=True)	# image
+	image=models.ImageField(null=True,)	# image
 	description=models.TextField()
 	location=models.CharField(max_length=100)
 	date=models.DateField()
 	time=models.TimeField()
 	capacity=models.PositiveIntegerField()
 	organizer=models.ForeignKey(User, default=1, on_delete=models.CASCADE, related_name='events')
+
+	def get_datetime(self):
+		return datetime.combine(self.date, self.time)
 
 	def seats_left(self):
 		total=0
@@ -31,11 +36,13 @@ class Event(models.Model):
 		return reverse('event-details', kwargs={'event_id':self.id})
 
 
-class UserEvent(models.Model):
+class Booking(models.Model):
 	name=models.ForeignKey(User, default=1, on_delete=models.CASCADE, related_name='attended')	#naming
 	seats=models.PositiveIntegerField()
 	event=models.ForeignKey(Event, default=1, on_delete=models.CASCADE, related_name='bookings')
 
+	def booking_time(self):
+		return datetime.combine(self.event.date, self.event.time)
 
 	def __str__(self):
 		return "%s - %s" % (self.name, self.event.title)
@@ -46,6 +53,9 @@ class Profile(models.Model):
 
 	def __str__(self):
 		return '%s profile'% (self.user.username)
+
+	def get_user(self):
+		return self.user
 
 
 

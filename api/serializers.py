@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from events.models import Event, UserEvent
+from events.models import Event, Booking, Contact
 from django.contrib.auth.models import User
 
 
@@ -27,7 +27,7 @@ class BookingListSerializer(serializers.ModelSerializer):
 	event = serializers.SerializerMethodField()
 	
 	class Meta:
-		model= UserEvent
+		model= Booking
 		exclude=['name',]
 
 	def get_event(self, obj):
@@ -70,7 +70,7 @@ class AttendeesSerializer(serializers.ModelSerializer):
 	name=serializers.SerializerMethodField()
 
 	class Meta:
-		model= UserEvent
+		model= Booking
 		fields=['name']
 
 	def get_name(self, obj):
@@ -87,3 +87,25 @@ class EventAttendeesSerializer(serializers.ModelSerializer):
 			return AttendeesSerializer(myevent,many=True).data
 
 
+class FollowSerializer(serializers.ModelSerializer):
+	following=serializers.SerializerMethodField()
+	class Meta:
+		model = Contact
+		fields=['following']
+
+	def get_following(self, obj):
+		return (obj.following.first_name+" "+obj.following.last_name)
+
+class FollowOrganizersSerializer(serializers.ModelSerializer):
+	full_name=serializers.SerializerMethodField()
+	class Meta:
+		model = Event
+		fields=['organizer', 'full_name']
+
+	def get_full_name(self, obj):
+		return (obj.organizer.first_name+" "+obj.organizer.last_name)
+
+class FollowingSerializer(serializers.ModelSerializer):
+	class Meta:
+		model= Contact
+		exclude=['created']
